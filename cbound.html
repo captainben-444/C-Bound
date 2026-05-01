@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C-Bound — Chart Your Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sand:#F5EFE0;
+  --cream:#FDFAF4;
+  --ocean:#0A3D52;
+  --ocean-dark:#061E2B;
+  --ocean-mid:#0D5470;
+  --teal:#1B8FA8;
+  --gold:#C9A84C;
+  --gold-light:#E8C97A;
+  --gold-pale:#F5E9C4;
+  --muted:#6B7280;
+  --white:#FFFFFF;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:#1A1A1A;overflow-x:hidden;line-height:1.7;cursor:none}
+.serif{font-family:'Cormorant Garamond',serif}
+h1,h2,h3,h4{font-family:'Cormorant Garamond',serif}
+
+/* cursor */
+#cur{position:fixed;width:10px;height:10px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .18s,height .18s,opacity .2s}
+#cur-r{position:fixed;width:34px;height:34px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .08s,top .08s,width .2s,height .2s;opacity:.55}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.6rem 5rem;transition:all .4s}
+nav.sc{background:rgba(253,250,244,.96);backdrop-filter:blur(16px);padding:1rem 5rem;border-bottom:1px solid rgba(201,168,76,.18)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:600;letter-spacing:.05em;color:var(--ocean);text-decoration:none}
+.logo span{color:var(--gold)}
+.nav-links{display:flex;gap:2.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.73rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--ocean);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{border:1px solid var(--gold)!important;color:var(--gold)!important;padding:.48rem 1.4rem;transition:background .2s,color .2s!important}
+.nav-cta:hover{background:var(--gold)!important;color:var(--white)!important}
+
+/* HERO */
+.hero{min-height:100vh;position:relative;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(155deg,var(--ocean-dark) 0%,#0A3D52 45%,#0D6070 100%)}
+.wl{position:absolute;inset:0;overflow:hidden;opacity:.13}
+.wl i{position:absolute;left:-100%;height:1px;background:linear-gradient(90deg,transparent,#4FBDD4,transparent);animation:wf linear infinite}
+.wl i:nth-child(1){top:18%;width:65%;animation-duration:10s;animation-delay:0s}
+.wl i:nth-child(2){top:32%;width:80%;animation-duration:13s;animation-delay:2s}
+.wl i:nth-child(3){top:48%;width:55%;animation-duration:9s;animation-delay:4s}
+.wl i:nth-child(4){top:63%;width:72%;animation-duration:14s;animation-delay:1s}
+.wl i:nth-child(5){top:78%;width:45%;animation-duration:11s;animation-delay:3s}
+@keyframes wf{from{left:-100%}to{left:200%}}
+
+/* compass */
+.cmp{position:absolute;right:6%;top:50%;transform:translateY(-50%);width:420px;height:420px;opacity:.1;animation:cspin 80s linear infinite}
+@keyframes cspin{to{transform:translateY(-50%) rotate(360deg)}}
+
+/* gold line accent top-right */
+.hero-accent{position:absolute;top:0;right:0;width:320px;height:320px;overflow:hidden;pointer-events:none}
+.hero-accent::before{content:'';position:absolute;top:0;right:0;width:1px;height:200px;background:linear-gradient(to bottom,rgba(201,168,76,.6),transparent)}
+.hero-accent::after{content:'';position:absolute;top:0;right:0;height:1px;width:200px;background:linear-gradient(to left,rgba(201,168,76,.6),transparent)}
+
+.hero-content{position:relative;z-index:2;padding:7rem 5rem 5rem;max-width:820px}
+.eyebrow{font-size:.68rem;font-weight:500;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:1.75rem;display:flex;align-items:center;gap:1rem;opacity:0;animation:fu .8s .3s forwards}
+.eyebrow::before{content:'';width:36px;height:1px;background:var(--gold);flex-shrink:0}
+.hero h1{font-size:clamp(3.8rem,6.5vw,6.8rem);font-weight:300;line-height:1.0;letter-spacing:-.02em;color:var(--sand);margin-bottom:2rem;opacity:0;animation:fu .9s .5s forwards}
+.hero h1 em{font-style:italic;color:var(--gold-light);display:block}
+.hero-desc{font-size:1.08rem;font-weight:300;color:rgba(245,239,224,.68);max-width:540px;line-height:1.85;margin-bottom:1.5rem;opacity:0;animation:fu .9s .65s forwards}
+.hero-price-line{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.5rem;opacity:0;animation:fu .9s .75s forwards}
+.hero-price{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--gold-light)}
+.hero-price-label{font-size:.7rem;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,239,224,.45)}
+.hero-actions{display:flex;gap:1.5rem;align-items:center;opacity:0;animation:fu .9s .9s forwards}
+.btn-p{background:var(--gold);color:var(--ocean);font-family:'Jost',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:.95rem 2.6rem;text-decoration:none;display:inline-block;transition:background .2s,transform .2s;border:none}
+.btn-p:hover{background:var(--gold-light);transform:translateY(-2px)}
+.btn-g{font-size:.72rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,239,224,.7);text-decoration:none;display:flex;align-items:center;gap:.6rem;transition:gap .2s,color .2s}
+.btn-g:hover{gap:1rem;color:var(--gold-light)}
+.btn-g::after{content:'→'}
+.scroll-hint{position:absolute;bottom:2.5rem;left:5rem;z-index:2;display:flex;align-items:center;gap:.75rem;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,239,224,.3);opacity:0;animation:fu .8s 1.2s forwards}
+.scroll-line{width:1px;height:44px;background:rgba(245,239,224,.25);animation:sp 2.2s ease-in-out infinite}
+@keyframes sp{0%,100%{opacity:.25}50%{opacity:.7}}
+@keyframes fu{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* MARQUEE */
+.marquee-wrap{background:var(--gold);padding:.7rem 0;overflow:hidden;white-space:nowrap}
+.marquee-track{display:inline-flex;animation:mq 28s linear infinite}
+.marquee-item{font-size:.65rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ocean);padding:0 2.5rem}
+.marquee-dot{color:rgba(10,61,82,.4)}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* WHAT IS */
+.what{padding:8rem 5rem;background:var(--cream);display:grid;grid-template-columns:1fr 1fr;gap:7rem;align-items:center}
+.what-visual{position:relative;height:560px}
+.what-main{position:absolute;top:0;left:0;right:3.5rem;bottom:3.5rem;background:linear-gradient(140deg,var(--ocean) 0%,var(--teal) 100%);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.what-main::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,255,255,.04) 28px,rgba(255,255,255,.04) 29px)}
+.yacht-art{width:80%;opacity:.22}
+.price-box{position:absolute;bottom:0;right:0;width:200px;height:200px;background:var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem}
+.price-box-num{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:300;color:var(--ocean);line-height:1;display:block}
+.price-box-label{font-size:.6rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(10,61,82,.7);margin-top:.4rem;line-height:1.4}
+.what-text .section-eyebrow{font-size:.65rem;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+.what-text .section-eyebrow::before{content:'';width:22px;height:1px;background:var(--gold)}
+.what-text h2{font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;line-height:1.1;color:var(--ocean);margin-bottom:1.5rem}
+.what-text h2 em{font-style:italic;color:var(--teal)}
+.what-text p{font-size:.98rem;font-weight:300;color:#444;line-height:1.9;margin-bottom:1.25rem}
+.ratio-badge{display:inline-flex;align-items:center;gap:.75rem;margin-top:1rem;padding:1rem 1.5rem;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.05)}
+.ratio-badge .num{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;color:var(--gold)}
+.ratio-badge .txt{font-size:.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ocean);line-height:1.4}
+
+/* WHAT'S INCLUDED */
+.included{padding:8rem 5rem;background:var(--ocean)}
+.included-header{margin-bottom:4rem}
+.section-eyebrow{font-size:.65rem;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+.section-eyebrow::before{content:'';width:22px;height:1px;background:var(--gold)}
+.section-title{font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;line-height:1.1;color:var(--sand);margin-bottom:.5rem}
+.section-title em{font-style:italic;color:var(--gold-light)}
+.inc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5px;background:rgba(201,168,76,.12)}
+.inc-card{background:#0B3E53;padding:2.75rem 2.25rem;position:relative;overflow:hidden;transition:background .3s}
+.inc-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.inc-card:hover{background:#0D4D66}
+.inc-card:hover::after{transform:scaleX(1)}
+.inc-icon{font-size:1.6rem;margin-bottom:1.25rem;display:block}
+.inc-card h3{font-size:1.35rem;font-weight:400;color:var(--sand);margin-bottom:.75rem;line-height:1.2}
+.inc-card p{font-size:.87rem;font-weight:300;color:rgba(245,239,224,.58);line-height:1.8}
+.inc-card .inc-tag{display:inline-block;margin-top:1.25rem;font-size:.62rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid rgba(201,168,76,.35);padding-bottom:.2rem}
+
+/* TIMELINE */
+.timeline-section{padding:8rem 5rem;background:var(--sand)}
+.timeline-section .section-title{color:var(--ocean)}
+.timeline-section .section-title em{color:var(--teal)}
+.timeline{margin-top:4rem;position:relative}
+.timeline::before{content:'';position:absolute;left:2.5rem;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--gold),var(--gold),transparent)}
+.t-item{display:flex;gap:3.5rem;align-items:flex-start;margin-bottom:3.5rem;position:relative}
+.t-item:last-child{margin-bottom:0}
+.t-marker{flex-shrink:0;width:5rem;display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.t-dot{width:18px;height:18px;border:2px solid var(--gold);border-radius:50%;background:var(--sand);position:relative;z-index:1;transition:background .3s}
+.t-item:hover .t-dot{background:var(--gold)}
+.t-phase{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);text-align:center;margin-top:.3rem;white-space:nowrap}
+.t-content{padding-top:.1rem;flex:1}
+.t-label{font-size:.65rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem}
+.t-content h3{font-size:1.6rem;font-weight:400;color:var(--ocean);margin-bottom:.6rem;line-height:1.15}
+.t-content p{font-size:.9rem;font-weight:300;color:#555;line-height:1.85;max-width:680px}
+.t-hours{display:inline-block;margin-top:.75rem;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);padding:.35rem .9rem;font-size:.68rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+
+/* ADDONS */
+.addons{padding:8rem 5rem;background:var(--cream)}
+.addons .section-title{color:var(--ocean)}
+.addons .section-title em{color:var(--teal)}
+.addons-intro{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:end;margin-bottom:4rem}
+.addons-note{font-size:.9rem;font-weight:300;color:var(--muted);line-height:1.8;border-left:2px solid var(--gold);padding-left:1.5rem}
+.addons-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.addon{background:var(--white);border:1px solid rgba(10,61,82,.1);padding:2rem 1.75rem;transition:all .25s;position:relative;overflow:hidden}
+.addon::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.addon:hover{border-color:rgba(201,168,76,.4);transform:translateY(-5px);box-shadow:0 12px 40px rgba(10,61,82,.08)}
+.addon:hover::before{transform:scaleX(1)}
+.addon-icon{font-size:1.8rem;margin-bottom:1rem;display:block}
+.addon h4{font-family:'Jost',sans-serif;font-size:.85rem;font-weight:600;color:var(--ocean);margin-bottom:.4rem;letter-spacing:.02em}
+.addon p{font-size:.78rem;color:var(--muted);line-height:1.65;margin-bottom:1.1rem}
+.addon-tag{font-size:.62rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+
+/* DESTINATIONS */
+.destinations{padding:8rem 5rem;background:var(--white)}
+.destinations .section-title{color:var(--ocean)}
+.destinations .section-title em{color:var(--teal)}
+.dest-mosaic{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:280px 280px;gap:3px;margin-top:3.5rem}
+.dc{position:relative;overflow:hidden}
+.dc:first-child{grid-row:1/3}
+.dc-bg{position:absolute;inset:0;transition:transform .65s ease}
+.dc:hover .dc-bg{transform:scale(1.06)}
+.dc-bg-1{background:linear-gradient(150deg,#07405C 0%,#0D7090 60%,#1FAABF 100%)}
+.dc-bg-2{background:linear-gradient(150deg,#193550 0%,#1B6280 100%)}
+.dc-bg-3{background:linear-gradient(150deg,#094050 0%,#0D8594 100%)}
+.dc-bg-4{background:linear-gradient(150deg,#1C3A56 0%,#1B5C78 100%)}
+.dc-overlay{position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,255,255,.025) 8px,rgba(255,255,255,.025) 9px)}
+.dc-content{position:absolute;bottom:0;left:0;right:0;padding:1.75rem;background:linear-gradient(transparent,rgba(4,20,32,.88))}
+.dc-label{font-size:.58rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.35rem}
+.dc-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;color:var(--sand)}
+.dc:first-child .dc-name{font-size:2.3rem}
+
+/* SINGLE PACKAGE HERO */
+.pkg-section{padding:8rem 5rem;background:linear-gradient(155deg,var(--ocean-dark) 0%,#0A3D52 100%)}
+.pkg-card-big{max-width:900px;margin:0 auto;border:1px solid rgba(201,168,76,.25);position:relative;overflow:hidden}
+.pkg-card-big::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.pkg-inner{padding:4rem}
+.pkg-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3rem}
+.pkg-label{font-size:.65rem;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.pkg-title{font-size:clamp(2rem,3.5vw,3rem);font-weight:300;color:var(--sand);line-height:1.1;margin-bottom:.5rem}
+.pkg-sub{font-size:.88rem;font-weight:300;color:rgba(245,239,224,.5)}
+.pkg-price-block{text-align:right;flex-shrink:0}
+.pkg-price-block .amount{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5vw,4.5rem);font-weight:300;color:var(--gold-light);line-height:1}
+.pkg-price-block .per{font-size:.72rem;font-weight:300;color:rgba(245,239,224,.4);display:block;margin-top:.25rem;letter-spacing:.1em;text-transform:uppercase}
+.pkg-divider{height:1px;background:rgba(201,168,76,.18);margin-bottom:3rem}
+.pkg-features{display:grid;grid-template-columns:1fr 1fr;gap:.6rem 3rem;margin-bottom:3rem}
+.pf{display:flex;align-items:flex-start;gap:.8rem;font-size:.88rem;font-weight:300;color:rgba(245,239,224,.72);padding:.4rem 0}
+.pf::before{content:'✦';font-size:.5rem;color:var(--gold);flex-shrink:0;margin-top:.45rem}
+.pkg-cta{display:flex;align-items:center;justify-content:space-between;padding-top:2rem;border-top:1px solid rgba(201,168,76,.18)}
+.pkg-cta p{font-size:.82rem;font-weight:300;color:rgba(245,239,224,.45);max-width:420px;line-height:1.6}
+.btn-reserve{background:var(--gold);color:var(--ocean);font-family:'Jost',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:1rem 2.8rem;text-decoration:none;display:inline-block;transition:background .2s,transform .2s;flex-shrink:0}
+.btn-reserve:hover{background:var(--gold-light);transform:translateY(-2px)}
+
+/* TESTIMONIAL */
+.testi{background:var(--gold-pale);padding:8rem 5rem;text-align:center}
+.testi blockquote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.65rem,3vw,2.6rem);font-weight:300;font-style:italic;color:var(--ocean);max-width:920px;margin:0 auto 2.5rem;line-height:1.4;position:relative}
+.testi blockquote::before{content:'"';font-size:7rem;line-height:0;color:rgba(10,61,82,.1);position:absolute;top:2.2rem;left:-1.5rem;font-style:normal}
+.testi-attr{font-size:.73rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.testi-attr strong{color:var(--ocean)}
+
+/* CONTACT */
+.contact{padding:8rem 5rem;background:var(--ocean);display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start}
+.contact-left h2{font-size:clamp(2.2rem,3.5vw,3.2rem);font-weight:300;color:var(--sand);line-height:1.1;margin-bottom:1.5rem}
+.contact-left h2 em{font-style:italic;color:var(--gold-light)}
+.contact-left p{font-size:.95rem;font-weight:300;color:rgba(245,239,224,.6);line-height:1.9;margin-bottom:2.5rem}
+.cd{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.cd-icon{width:38px;height:38px;border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;color:var(--gold)}
+.cd span{font-size:.85rem;font-weight:300;color:rgba(245,239,224,.65)}
+.contact-right{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);padding:3rem}
+.fg{margin-bottom:1.5rem}
+.fg label{display:block;font-size:.63rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,239,224,.45);margin-bottom:.5rem}
+.fg input,.fg select,.fg textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.18);color:var(--sand);font-family:'Jost',sans-serif;font-size:.9rem;font-weight:300;padding:.82rem 1rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fg input::placeholder,.fg textarea::placeholder{color:rgba(245,239,224,.22)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:rgba(201,168,76,.6)}
+.fg select option{background:var(--ocean);color:var(--sand)}
+.fg textarea{resize:vertical;min-height:100px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.btn-sub{width:100%;background:var(--gold);color:var(--ocean);border:none;font-family:'Jost',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:1rem;cursor:none;transition:background .2s}
+.btn-sub:hover{background:var(--gold-light)}
+
+/* FOOTER */
+footer{background:#040C14;padding:3.5rem 5rem 2rem}
+.ft{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid rgba(201,168,76,.1)}
+.fb .logo{display:block;margin-bottom:1rem;font-size:1.9rem}
+.fb p{font-size:.82rem;font-weight:300;color:rgba(245,239,224,.35);line-height:1.8;max-width:240px}
+.fc h5{font-size:.62rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+.fc ul{list-style:none}
+.fc ul li{margin-bottom:.55rem}
+.fc ul li a{font-size:.8rem;font-weight:300;color:rgba(245,239,224,.35);text-decoration:none;transition:color .2s}
+.fc ul li a:hover{color:var(--gold)}
+.fb2{display:flex;justify-content:space-between;align-items:center;padding-top:1.75rem}
+.copy{font-size:.72rem;color:rgba(245,239,224,.2)}
+.ftag{font-family:'Cormorant Garamond',serif;font-size:.9rem;font-style:italic;color:rgba(245,239,224,.25)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .85s ease,transform .85s ease}
+.reveal.vis{opacity:1;transform:none}
+
+@media(max-width:1024px){
+  nav,nav.sc{padding:1rem 1.5rem}
+  .hero-content,.what,.included,.timeline-section,.addons,.destinations,.pkg-section,.contact,footer{padding-left:1.5rem;padding-right:1.5rem}
+  .what,.contact{grid-template-columns:1fr;gap:3rem}
+  .what-visual{height:260px}
+  .inc-grid,.addons-grid,.packages-grid{grid-template-columns:1fr}
+  .addons-intro{grid-template-columns:1fr}
+  .dest-mosaic{grid-template-columns:1fr;grid-template-rows:auto}
+  .dc:first-child{grid-row:auto}
+  .dc{min-height:180px}
+  .pkg-top{flex-direction:column;gap:1.5rem}
+  .pkg-price-block{text-align:left}
+  .pkg-features{grid-template-columns:1fr}
+  .pkg-cta{flex-direction:column;align-items:flex-start;gap:1.5rem}
+  .ft{grid-template-columns:1fr 1fr}
+  .f2{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;align-items:flex-start}
+  .cmp{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">C<span>·</span>Bound</a>
+  <ul class="nav-links">
+    <li><a href="#included">What's Included</a></li>
+    <li><a href="#program">Program</a></li>
+    <li><a href="#addons">Add-Ons</a></li>
+    <li><a href="#destinations">Destinations</a></li>
+    <li><a href="#contact" class="nav-cta">Reserve Your Spot</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="wl"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="hero-accent"></div>
+
+  <svg class="cmp" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="96" stroke="rgba(201,168,76,.55)" stroke-width=".5"/>
+    <circle cx="100" cy="100" r="78" stroke="rgba(201,168,76,.4)" stroke-width=".5"/>
+    <circle cx="100" cy="100" r="58" stroke="rgba(201,168,76,.3)" stroke-width=".5"/>
+    <line x1="100" y1="4" x2="100" y2="196" stroke="rgba(201,168,76,.4)" stroke-width=".5"/>
+    <line x1="4" y1="100" x2="196" y2="100" stroke="rgba(201,168,76,.4)" stroke-width=".5"/>
+    <line x1="30" y1="30" x2="170" y2="170" stroke="rgba(201,168,76,.2)" stroke-width=".5"/>
+    <line x1="170" y1="30" x2="30" y2="170" stroke="rgba(201,168,76,.2)" stroke-width=".5"/>
+    <polygon points="100,4 94,94 100,86 106,94" fill="rgba(201,168,76,.75)"/>
+    <polygon points="100,196 94,106 100,114 106,106" fill="rgba(201,168,76,.35)"/>
+    <polygon points="4,100 94,94 86,100 94,106" fill="rgba(201,168,76,.35)"/>
+    <polygon points="196,100 106,94 114,100 106,106" fill="rgba(201,168,76,.35)"/>
+    <circle cx="100" cy="100" r="5" fill="rgba(201,168,76,.9)"/>
+    <text x="96" y="20" font-size="11" fill="rgba(201,168,76,.85)" font-family="Georgia">N</text>
+    <text x="96" y="190" font-size="11" fill="rgba(201,168,76,.4)" font-family="Georgia">S</text>
+    <text x="182" y="104" font-size="11" fill="rgba(201,168,76,.4)" font-family="Georgia">E</text>
+    <text x="6" y="104" font-size="11" fill="rgba(201,168,76,.4)" font-family="Georgia">W</text>
+  </svg>
+
+  <div class="hero-content">
+    <div class="eyebrow">Luxury College Counseling · Bahamas</div>
+    <h1>Chart Your Course<br><em>to the College<br>of Your Dreams.</em></h1>
+    <p class="hero-desc">Five transformative days in the Bahamas. World-class college counseling at a 2:1 ratio. An experience — and application — you'll never forget.</p>
+    <div class="hero-price-line">
+      <span class="hero-price serif">$150,000</span>
+      <span class="hero-price-label">All-Inclusive · Per Group</span>
+    </div>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-p">Reserve Your Voyage</a>
+      <a href="#included" class="btn-g">See What's Included</a>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-line"></div>Scroll to explore</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">2:1 Counselor Ratio <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">5 Days in the Bahamas <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">All-Inclusive Experience <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Pre & Post Trip Support <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Application Nearly Complete <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Accommodations Included <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Private Yacht Charter <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">2:1 Counselor Ratio <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">5 Days in the Bahamas <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">All-Inclusive Experience <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Pre & Post Trip Support <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Application Nearly Complete <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Accommodations Included <span class="marquee-dot">✦</span></span>
+    <span class="marquee-item">Private Yacht Charter <span class="marquee-dot">✦</span></span>
+  </div>
+</div>
+
+<!-- WHAT IS C-BOUND -->
+<section class="what" id="about">
+  <div class="what-visual reveal">
+    <div class="what-main">
+      <svg class="yacht-art" viewBox="0 0 400 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 95 L200 18 L385 95" stroke="rgba(255,255,255,.55)" stroke-width="1.5" fill="none"/>
+        <path d="M200 18 L200 95" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+        <path d="M200 18 L130 95" stroke="rgba(255,255,255,.2)" stroke-width=".8"/>
+        <path d="M0 100 Q200 80 400 100 L392 116 Q200 106 8 116 Z" fill="rgba(255,255,255,.12)"/>
+        <ellipse cx="200" cy="114" rx="188" ry="9" fill="rgba(255,255,255,.06)"/>
+        <rect x="185" y="50" width="30" height="3" rx="1" fill="rgba(255,255,255,.2)"/>
+      </svg>
+    </div>
+    <div class="price-box">
+      <span class="price-box-num serif">$150K</span>
+      <span class="price-box-label">All-Inclusive<br>Package</span>
+    </div>
+  </div>
+  <div class="what-text reveal">
+    <div class="section-eyebrow">What Is C-Bound</div>
+    <h2>Where the <em>application<br>gets written</em> — and life<br>gets lived.</h2>
+    <p>C-Bound is a one-of-a-kind college counseling experience set aboard luxury yachts in the Bahamas. We partner expert college admissions counselors with your student in an intimate, focused environment that simply doesn't exist anywhere else.</p>
+    <p>In five days, your student will make extraordinary progress on their college application — essays drafted, school list finalized, strategy locked — surrounded by crystal water, island beauty, and unwavering expert attention.</p>
+    <div class="ratio-badge">
+      <span class="num serif">2:1</span>
+      <span class="txt">Counselor-to-<br>Student Ratio</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT'S INCLUDED -->
+<section class="included" id="included">
+  <div class="included-header reveal">
+    <div class="section-eyebrow" style="color:var(--gold)">Everything Included</div>
+    <h2 class="section-title">One price.<br><em>Everything covered.</em></h2>
+  </div>
+  <div class="inc-grid reveal">
+    <div class="inc-card">
+      <span class="inc-icon">✍️</span>
+      <h3>Expert College Counseling</h3>
+      <p>Two dedicated counselors work with your student at a 2:1 ratio throughout the trip — essays, school list, activity descriptions, strategy, and more. Your student will nearly finish the application by departure.</p>
+      <span class="inc-tag">Core Program</span>
+    </div>
+    <div class="inc-card">
+      <span class="inc-icon">⛵</span>
+      <h3>Luxury Yacht & Accommodations</h3>
+      <p>Private stateroom aboard a luxury charter yacht. All accommodations in the Bahamas from arrival to departure are fully covered — no hidden hotel costs, no surprises.</p>
+      <span class="inc-tag">Accommodations</span>
+    </div>
+    <div class="inc-card">
+      <span class="inc-icon">🍽</span>
+      <h3>Gourmet Dining, All Meals</h3>
+      <p>Every meal from the moment you arrive in the Bahamas is taken care of. Gourmet breakfasts, lunches, and dinners — from onboard dining to curated island restaurants.</p>
+      <span class="inc-tag">Food & Dining</span>
+    </div>
+    <div class="inc-card">
+      <span class="inc-icon">✈️</span>
+      <h3>Local Transportation</h3>
+      <p>All transportation within the Bahamas is covered — airport transfers, water taxis, and inter-island travel. Arrive in Nassau and leave the logistics to us.</p>
+      <span class="inc-tag">Transportation</span>
+    </div>
+    <div class="inc-card">
+      <span class="inc-icon">📋</span>
+      <h3>2 Hours Pre-Trip Prep</h3>
+      <p>Two hours of virtual one-on-one counseling before your voyage. We'll align on the student's goals, schools, draft essay ideas, and ensure the five days on the water are maximally productive.</p>
+      <span class="inc-tag">Pre-Trip</span>
+    </div>
+    <div class="inc-card">
+      <span class="inc-icon">🎓</span>
+      <h3>8 Hours Post-Trip Support</h3>
+      <p>Eight hours of continued counseling after the trip to finalize any remaining application pieces, review final drafts, and prepare for submission. We see it through to the end.</p>
+      <span class="inc-tag">Post-Trip</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRAM TIMELINE -->
+<section class="timeline-section" id="program">
+  <div class="reveal">
+    <div class="section-eyebrow">The Program</div>
+    <h2 class="section-title">From first call to<br><em>final submission.</em></h2>
+  </div>
+  <div class="timeline reveal">
+    <div class="t-item">
+      <div class="t-marker">
+        <div class="t-dot"></div>
+        <span class="t-phase">Pre-Trip</span>
+      </div>
+      <div class="t-content">
+        <div class="t-label">Weeks Before Departure</div>
+        <h3>Preparation Sessions</h3>
+        <p>Your counselors connect virtually with your student to understand their academic profile, interests, and dream schools. We develop a clear roadmap for the five days — which essays to tackle, what research to complete, and how to make every hour count.</p>
+        <span class="t-hours">2 Hours Included</span>
+      </div>
+    </div>
+    <div class="t-item">
+      <div class="t-marker">
+        <div class="t-dot"></div>
+        <span class="t-phase">Day 1</span>
+      </div>
+      <div class="t-content">
+        <div class="t-label">Arrival Day</div>
+        <h3>Welcome to the Bahamas</h3>
+        <p>Arrive in Nassau, meet your counselors and crew. Board the yacht, settle in, and enjoy a welcome dinner as you depart the harbour. An informal evening session sets the tone — goals, intentions, and the beginning of your student's story.</p>
+      </div>
+    </div>
+    <div class="t-item">
+      <div class="t-marker">
+        <div class="t-dot"></div>
+        <span class="t-phase">Days 2–3</span>
+      </div>
+      <div class="t-content">
+        <div class="t-label">Deep Work at Sea</div>
+        <h3>Essays, School List & Strategy</h3>
+        <p>Morning and afternoon counseling sessions at a 2:1 ratio. Common App essay drafted and refined, supplemental essay frameworks built, school list finalized with strategic positioning. The unhurried pace of life at sea creates focus that's impossible to replicate at home.</p>
+      </div>
+    </div>
+    <div class="t-item">
+      <div class="t-marker">
+        <div class="t-dot"></div>
+        <span class="t-phase">Days 4–5</span>
+      </div>
+      <div class="t-content">
+        <div class="t-label">Refinement & Exploration</div>
+        <h3>Polish, Activities & Island Life</h3>
+        <p>Counseling sessions continue as the application takes final shape. Activity descriptions written, extracurricular narrative solidified. Afternoons free for island adventures — the very experiences that may become the final flourish in an essay or interview story.</p>
+      </div>
+    </div>
+    <div class="t-item">
+      <div class="t-marker">
+        <div class="t-dot"></div>
+        <span class="t-phase">Post-Trip</span>
+      </div>
+      <div class="t-content">
+        <div class="t-label">After You Return Home</div>
+        <h3>Final Review & Submission</h3>
+        <p>Your counselors stay with you. Eight hours of continued support to finalize remaining essays, conduct final reviews, prepare for interviews, and ensure every piece of the application is the best it can possibly be before submission day.</p>
+        <span class="t-hours">8 Hours Included</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SINGLE PACKAGE -->
+<section class="pkg-section">
+  <div class="reveal">
+    <div class="section-eyebrow" style="color:var(--gold)">The Package</div>
+    <h2 class="section-title" style="color:var(--sand);margin-bottom:3rem">One offering.<br><em>No compromise.</em></h2>
+  </div>
+  <div class="pkg-card-big reveal">
+    <div class="pkg-inner">
+      <div class="pkg-top">
+        <div>
+          <div class="pkg-label">C-Bound Full Experience</div>
+          <h3 class="pkg-title serif">The Complete Voyage</h3>
+          <p class="pkg-sub">5 Days · Bahamas · All-Inclusive · 2:1 Counselor Ratio</p>
+        </div>
+        <div class="pkg-price-block">
+          <span class="amount serif">$150,000</span>
+          <span class="per">All-Inclusive · Per Group</span>
+        </div>
+      </div>
+      <div class="pkg-divider"></div>
+      <div class="pkg-features">
+        <div class="pf">2:1 college counselor-to-student ratio throughout</div>
+        <div class="pf">All Bahamas accommodations, arrival to departure</div>
+        <div class="pf">5-day luxury private yacht charter</div>
+        <div class="pf">All meals and dining, gourmet standard</div>
+        <div class="pf">2 hours of pre-trip virtual preparation sessions</div>
+        <div class="pf">All local transportation within the Bahamas</div>
+        <div class="pf">8 hours of post-trip counseling and final review</div>
+        <div class="pf">Common App essay drafted and refined</div>
+        <div class="pf">School list strategy and finalization</div>
+        <div class="pf">Supplemental essay frameworks for all schools</div>
+        <div class="pf">Activity descriptions and extracurricular narrative</div>
+        <div class="pf">Application nearly complete upon return home</div>
+      </div>
+      <div class="pkg-cta">
+        <p>Spaces are extremely limited. Each voyage is crafted entirely around your student. Contact us to begin the conversation.</p>
+        <a href="#contact" class="btn-reserve">Reserve Your Voyage</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADD-ONS -->
+<section class="addons" id="addons">
+  <div class="addons-intro reveal">
+    <div>
+      <div class="section-eyebrow">Optional Upgrades</div>
+      <h2 class="section-title">Elevate the<br><em>adventure.</em></h2>
+    </div>
+    <p class="addons-note">The core experience is all-inclusive. These curated add-ons are available for students who want to layer unforgettable adventures into their voyage — and perhaps, a great essay anecdote along the way.</p>
+  </div>
+  <div class="addons-grid reveal">
+    <div class="addon">
+      <span class="addon-icon">🤿</span>
+      <h4>PADI Open Water Certification</h4>
+      <p>Get fully scuba-certified in some of the world's clearest water. 3–4 day program, all equipment included. A lifetime credential earned in paradise.</p>
+      <span class="addon-tag">From $600 / person</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🎣</span>
+      <h4>Deep Sea Fishing Charter</h4>
+      <p>Half-day offshore sport fishing for mahi-mahi, wahoo, or tuna with a professional captain. Your catch prepared by the onboard chef that evening.</p>
+      <span class="addon-tag">From $450 / charter</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🐬</span>
+      <h4>Wild Dolphin Encounter</h4>
+      <p>A guided swim with wild Atlantic spotted dolphins in their natural habitat — one of the Bahamas' most sought-after and memorable experiences.</p>
+      <span class="addon-tag">From $180 / person</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🏝</span>
+      <h4>Private Island Picnic</h4>
+      <p>A fully catered lunch on a secluded private cay or sandbar — just your group, white sand, and turquoise water. The ideal midweek reset.</p>
+      <span class="addon-tag">From $350 / group</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🏄</span>
+      <h4>Water Sports Package</h4>
+      <p>Paddleboarding, kayaking, wakeboarding, jet ski — a full afternoon of thrills on the water. No experience necessary.</p>
+      <span class="addon-tag">From $200 / person</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🍽</span>
+      <h4>Private Beach Chef Dinner</h4>
+      <p>A candlelit dinner prepared by a private chef on a deserted beach. Fresh local seafood, curated wine, and the most unforgettable sunset of your life.</p>
+      <span class="addon-tag">From $280 / person</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🦈</span>
+      <h4>Shark Dive Experience</h4>
+      <p>A supervised shark dive at world-famous sites in the Bahamas — the shark diving capital of the world. Bucket-list material, completely safe.</p>
+      <span class="addon-tag">From $220 / person</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">📸</span>
+      <h4>Professional Photo & Video</h4>
+      <p>A half-day underwater and above-water photographer captures your voyage. High-resolution gallery and highlight reel delivered within two weeks.</p>
+      <span class="addon-tag">From $400 / session</span>
+    </div>
+    <div class="addon">
+      <span class="addon-icon">🌅</span>
+      <h4>Sunset Catamaran Cruise</h4>
+      <p>An evening sail on a private catamaran with drinks, light bites, and the most spectacular Bahamian sunset. Perfect wind-down after an intensive work day.</p>
+      <span class="addon-tag">From $300 / group</span>
+    </div>
+  </div>
+</section>
+
+<!-- DESTINATIONS -->
+<section class="destinations" id="destinations">
+  <div class="reveal">
+    <div class="section-eyebrow">Where We Sail</div>
+    <h2 class="section-title">The <em>Bahamas</em>,<br>your classroom.</h2>
+  </div>
+  <div class="dest-mosaic reveal">
+    <div class="dc"><div class="dc-bg dc-bg-1"></div><div class="dc-overlay"></div><div class="dc-content"><div class="dc-label">Home Port · Day 1</div><div class="dc-name serif">Nassau & Paradise Island</div></div></div>
+    <div class="dc"><div class="dc-bg dc-bg-2"></div><div class="dc-overlay"></div><div class="dc-content"><div class="dc-label">Days 2–3</div><div class="dc-name serif">The Exumas</div></div></div>
+    <div class="dc"><div class="dc-bg dc-bg-3"></div><div class="dc-overlay"></div><div class="dc-content"><div class="dc-label">Days 3–4</div><div class="dc-name serif">Eleuthera</div></div></div>
+    <div class="dc"><div class="dc-bg dc-bg-4"></div><div class="dc-overlay"></div><div class="dc-content"><div class="dc-label">Day 4–5</div><div class="dc-name serif">Private Cays</div></div></div>
+    <div class="dc"><div class="dc-bg dc-bg-2"></div><div class="dc-overlay"></div><div class="dc-content"><div class="dc-label">Optional</div><div class="dc-name serif">Harbour Island</div></div></div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<div class="testi reveal">
+  <blockquote>"My son came home with his Common App essay finished, his school list locked, a PADI certification — and a story about swimming with sharks that I think will open every interview. Worth every dollar."</blockquote>
+  <div class="testi-attr">— <strong>Parent of admitted Yale Class of 2029</strong></div>
+</div>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-left reveal">
+    <div class="section-eyebrow" style="color:var(--gold)">Reserve Your Spot</div>
+    <h2>Ready to <em>chart<br>your course?</em></h2>
+    <p>Each C-Bound voyage is built around a single student and their unique story. Spaces are extremely limited. Reach out to begin the conversation — we'll follow up within 24 hours.</p>
+    <div class="cd"><div class="cd-icon">✉</div><span>hello@cboundadvisory.com</span></div>
+    <div class="cd"><div class="cd-icon">☎</div><span>+1 (305) 000-0000</span></div>
+    <div class="cd"><div class="cd-icon">⚓</div><span>Nassau, The Bahamas</span></div>
+  </div>
+  <div class="contact-right reveal">
+    <div class="fg"><label>Parent Name</label><input type="text" placeholder="Full name"></div>
+    <div class="f2">
+      <div class="fg"><label>Email</label><input type="email" placeholder="you@email.com"></div>
+      <div class="fg"><label>Phone</label><input type="tel" placeholder="+1 (000) 000-0000"></div>
+    </div>
+    <div class="fg"><label>Student's Graduation Year</label>
+      <select>
+        <option>Class of 2026</option>
+        <option>Class of 2027</option>
+        <option>Class of 2028</option>
+        <option>Class of 2029</option>
+      </select>
+    </div>
+    <div class="fg"><label>Add-Ons You're Interested In</label>
+      <select>
+        <option>PADI Scuba Certification</option>
+        <option>Deep Sea Fishing</option>
+        <option>Multiple — I'll describe below</option>
+        <option>No add-ons at this time</option>
+      </select>
+    </div>
+    <div class="fg"><label>Tell us about your student</label><textarea placeholder="Target schools, application stage, any questions..."></textarea></div>
+    <button class="btn-sub">Send Inquiry →</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft">
+    <div class="fb"><a href="#" class="logo">C<span>·</span>Bound</a><p>Where elite college counseling meets the open sea. Nassau, Bahamas.</p></div>
+    <div class="fc"><h5>Experience</h5><ul><li><a href="#about">About C-Bound</a></li><li><a href="#included">What's Included</a></li><li><a href="#program">The Program</a></li><li><a href="#destinations">Destinations</a></li></ul></div>
+    <div class="fc"><h5>The Voyage</h5><ul><li><a href="#program">Program Timeline</a></li><li><a href="#addons">Add-Ons</a></li><li><a href="#contact">Reserve a Spot</a></li><li><a href="#">FAQ</a></li></ul></div>
+    <div class="fc"><h5>Contact</h5><ul><li><a href="#">hello@cboundadvisory.com</a></li><li><a href="#">Nassau, Bahamas</a></li><li><a href="#">Instagram</a></li><li><a href="#">LinkedIn</a></li></ul></div>
+  </div>
+  <div class="fb2"><span class="copy">© 2025 C-Bound. All rights reserved.</span><span class="ftag">Chart your course.</span></div>
+</footer>
+
+<script>
+// Cursor
+const cur = document.getElementById('cur'), curR = document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+function lerpCursor(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(lerpCursor)}
+lerpCursor();
+const hoverEls=document.querySelectorAll('a,button,.addon,.inc-card,.dc,.t-item');
+hoverEls.forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='16px';cur.style.height='16px';curR.style.width='48px';curR.style.height='48px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='10px';cur.style.height='10px';curR.style.width='34px';curR.style.height='34px'});
+});
+
+// Nav
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('sc',scrollY>60));
+
+// Reveal
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(r=>ro.observe(r));
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'})}
+  });
+});
+</script>
+</body>
+</html>
